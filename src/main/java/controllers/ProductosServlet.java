@@ -2,16 +2,21 @@ package controllers;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.Productos;
+import services.LoginService;
+import services.LoginServiceImplement;
 import services.ProductoService;
 import services.ProductoServiceImplement;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 //Anotaciones
 @WebServlet("/productos")
@@ -20,6 +25,18 @@ public class ProductosServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         ProductoService service = new ProductoServiceImplement();
         List<Productos> productos = service.listar();
+        //Hago una condición preguntando si la cookie es distinto de null
+        // si es verdadero obtengo la cookie caso contrario creo un nuevo objeto
+        //de la cookie
+        //Cookie[] cookies = req.getCookies() != null ? req.getCookies() : new Cookie[0];
+        //Busco dentro la variable cookie si existe la cookie
+       // Optional<String> cookieOptional = Arrays.stream(cookies)
+        //        .filter(c -> "username".equals(c.getName()))
+                //Convertimos la cookie a tipo string
+            //    .map(Cookie::getValue)
+              //  .findAny();
+        LoginService auth=new LoginServiceImplement();
+        Optional<String> cookieOptional=auth.getUserName(req);
 
         resp.setContentType("text/html;charset=UTF-8");
         PrintWriter out = resp.getWriter();
@@ -32,19 +49,29 @@ public class ProductosServlet extends HttpServlet {
         out.println("</head>");
         out.println("<body>");
         out.println("<h1>Listar producto</h1>");
+        if (cookieOptional.isPresent()){
+            out.println("<div style='color:blue'> Hola "+ cookieOptional.get()+"</div>");
+        }
+
         out.println("<table>");
         out.println("<tr>");
         out.println("<th>ID PRODUCTO</th>");
         out.println("<th>NOMBRE</th>");
         out.println("<th>CATEGORIA</th>");
-        out.println("<th>PRECIO</th>");
+        if (cookieOptional.isPresent()){
+            out.println("<th>PRECIO</th>");
+        }
+
         out.println("</tr>");
         productos.forEach(p->{
             out.println("<tr>");
             out.println("<td>"+p.getIdProducto()+"</td>");
             out.println("<td>"+p.getNombreProducto()+"</td>");
             out.println("<td>"+p.getCategoria()+"</td>");
-            out.println("<td>"+p.getPrecioProducto()+"</td>");
+            if (cookieOptional.isPresent()){
+                out.println("<td>"+p.getPrecioProducto()+"</td>");
+            }
+
             out.println("</tr>");
 
         });
